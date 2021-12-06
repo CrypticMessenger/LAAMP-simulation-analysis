@@ -1,0 +1,38 @@
+
+units		si          #si units of parameters
+atom_style	sphere
+dimension	2
+boundary p p p
+newton		off
+comm_modify     vel yes
+lattice sq 1.0 origin 0.5 0.5 0
+region		box block 0.0 20.0 0 20.0 -0.5 0.5
+create_box	1 box
+create_atoms 1 region box  units lattice
+group 1 type 1
+set type 1 diameter 0.5
+set type 1 mass 1
+neighbor  0.55 bin
+
+
+
+pair_style granular
+pair_coeff * * hooke 200000.0 50.0 tangential linear_history 200000.0 1.0 0.5 damping mass_velocity
+
+
+
+timestep	0.0001
+
+fix bd 1 langevin 1.0e+20  1.0e+20 50 15072
+fix int 1 nve/sphere
+
+fix		2 all enforce2d
+
+thermo_style custom step ke
+thermo 100000
+
+
+dump		7 all custom 1000000 *.velocity id vx vy
+dump            mydump all atom 100000 langevin_lattice.dump
+restart 1000000 restart.*.langevin_lattice
+run 20000000
